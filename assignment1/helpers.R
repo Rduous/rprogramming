@@ -3,18 +3,6 @@ listFiles <- function(directory = getwd()) {
   list.files(directory)
 }
 
-### list files in the directory; read only those whose index is indicated in id;
-### return them as a single CSV.
-readFiles <- function(directory, ids = 1:332) {
-  files <- listFiles(directory)
-  csvList <- lapply(ids, readFileToCsv, fileList = files)
-  return(Reduce(function(x,y) {rbind(x,y)}, csvList))  
-}
-
-readFileToCsv <- function(id, fileList) {
-  return(read.csv(fileList[[id]]))
-}
-
 ### Sanity check function
 countRows <- function(directory, ids=1:332) {
   files <- listFiles(directory)
@@ -27,9 +15,12 @@ countRows <- function(directory, ids=1:332) {
 
 ### Can I generalize?  Allow row-filtering function to be abstract for reuse
 ### Usage: noNaNs <- readFilesWithFilter(getwd(), fxn=complete.cases)
-readFilesWithFilter <- function(directory, ids = 1:332, fxn = trivialFun) {
+readFiles <- function(directory, ids = 1:332, fxn = trivialFun) {
   files <- listFiles(directory)
+  oldwd <- getwd()
+  setwd(directory)
   csvList <- lapply(ids, readFileToCsvWithFilter, fileList = files, fun = fxn)
+  setwd(oldwd)
   return(Reduce(function(x,y) {rbind(x,y)}, csvList)) 
 }
 
