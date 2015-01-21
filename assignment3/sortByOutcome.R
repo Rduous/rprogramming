@@ -1,27 +1,26 @@
-outcomeNames <- c("heart attack", "heart failure", "pneumonia")
-outcomeCols <- c(11, 17, 23)
+source("sortByOutcome.R")
 
-sortByOutcome <- function(state=NULL, outcome) {
+ranks <- c("best", "worst")
 
-    ## Read outcome data
-    outcomes <- read.csv("outcome-of-care-measures.csv", colClasses = "character", na.strings = "Not Available")
+rankhospital <- function(state, outcome, num = "best") {
 
-    ## Check that outcome is valid
-    
-    outcomeTypeIndex <- match(outcome, outcomeNames)
-   
-    if (is.null(outcome) || is.na(outcome) || is.na(outcomeTypeIndex) ) stop("invalid outcome")
+    # validate state
+    if (is.null(state)) stop("invalid state")
 
-    ## Return hospital name in that state with lowest 30-day death rate
-    col <- outcomeCols[outcomeTypeIndex]
-    # filter by state
-    if (! is.null(state)) {
-         if ( is.na(state) || sum(outcomes[,7] == state) == 0 ) stop("invalid state")
-        outcomes <- outcomes[(outcomes[,7] == state),]
+    # get sorted data
+    sorted <- sortByOutcome(state, outcome)
+
+    # validate/translate rank
+    if (is.numeric(num)) {
+        if (num > nrow(sorted)) return(NA)
+    } else {
+        if (is.character(num)) {
+            if (identical(num, ranks[1])) num <- 1
+            else if (identical(num, ranks[2])) num <- nrow(sorted)
+        } 
     }
-    # cast row as numeric, for numeric sort
-    outcomes[,col] <- as.numeric(outcomes[,col])
-    # sort
-    sorted <- outcomes[ order(outcomes[,col],outcomes[,7]),]
-    sorted
+    if (! is.numeric(num)) stop("invalid rank")
+
+    sorted[num,2]
+
 }
